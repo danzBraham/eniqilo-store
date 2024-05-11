@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/danzBraham/eniqilo-store/internal/services/staff"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,6 +22,9 @@ func NewAPIServer(addr string, db *pgxpool.Pool) *APIServer {
 
 func (s *APIServer) Run() error {
 	router := http.NewServeMux()
+
+	staffService := staff.NewHandler()
+	staffService.RegisterRoutes(router)
 
 	v1 := http.NewServeMux()
 	v1.Handle("/v1/", http.StripPrefix("/v1", router))
