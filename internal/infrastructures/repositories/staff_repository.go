@@ -27,11 +27,25 @@ func (r *StaffRepositoryDB) CreateStaff(staff *entities.RegisterStaff) (id strin
 }
 
 func (r *StaffRepositoryDB) VerifyPhoneNumber(phoneNumber string) (bool, error) {
-	query := "SELECT EXISTS (SELECT phone_number FROM staff WHERE phone_number = $1)"
 	var isPhoneNumberExists bool
+	query := "SELECT EXISTS (SELECT phone_number FROM staff WHERE phone_number = $1)"
 	if err := r.DB.QueryRow(context.Background(), query, phoneNumber).Scan(&isPhoneNumberExists); err != nil {
 		return false, err
 	}
 
 	return isPhoneNumberExists, nil
+}
+
+func (r *StaffRepositoryDB) FindByPhoneNumber(phoneNumber string) (*entities.Staff, error) {
+	var id, name string
+	query := "SELECT id, name FROM staff WHERE phone_number = $1 LIMIT 1"
+	if err := r.DB.QueryRow(context.Background(), query, phoneNumber).Scan(&id, &name); err != nil {
+		return nil, err
+	}
+
+	return &entities.Staff{
+		ID:          id,
+		Name:        name,
+		PhoneNumber: phoneNumber,
+	}, nil
 }

@@ -17,7 +17,7 @@ func NewStaffService(staffRepository repositories.StaffRepository) interfaces.St
 	return &StaffService{StaffRepository: staffRepository}
 }
 
-func (s *StaffService) RegisterStaff(staff *entities.RegisterStaff) (*entities.RegisteredStaff, error) {
+func (s *StaffService) RegisterStaff(staff *entities.RegisterStaff) (*entities.LoggedInStaff, error) {
 	// Check if phone number already exists
 	if isPhoneNumberExists, _ := s.StaffRepository.VerifyPhoneNumber(staff.PhoneNumber); isPhoneNumberExists {
 		return nil, fmt.Errorf("staff with phone number %s already exists", staff.PhoneNumber)
@@ -42,10 +42,31 @@ func (s *StaffService) RegisterStaff(staff *entities.RegisterStaff) (*entities.R
 		return nil, err
 	}
 
-	return &entities.RegisteredStaff{
+	return &entities.LoggedInStaff{
 		ID:          id,
 		PhoneNumber: staff.PhoneNumber,
 		Name:        staff.Name,
+		AccessToken: accessToken,
+	}, nil
+}
+
+func (s *StaffService) LoginStaff(staff *entities.LoginStaff) (*entities.LoggedInStaff, error) {
+	// Find staff with phone number
+	foundedStaff, err := s.StaffRepository.FindByPhoneNumber(staff.PhoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create access token
+	accessToken, err := helpers.CreateJWT(foundedStaff.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entities.LoggedInStaff{
+		ID:          foundedStaff.ID,
+		PhoneNumber: staff.PhoneNumber,
+		Name:        foundedStaff.Name,
 		AccessToken: accessToken,
 	}, nil
 }

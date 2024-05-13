@@ -17,7 +17,12 @@ type RegisterStaff struct {
 	Password    string `json:"password" validate:"required,min=5,max=15"`
 }
 
-type RegisteredStaff struct {
+type LoginStaff struct {
+	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16"`
+	Password    string `json:"password" validate:"required,min=5,max=15"`
+}
+
+type LoggedInStaff struct {
 	ID          string `json:"userId"`
 	PhoneNumber string `json:"phoneNumber"`
 	Name        string `json:"name"`
