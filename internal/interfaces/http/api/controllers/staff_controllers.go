@@ -81,7 +81,7 @@ func (s *StaffController) handleRegister(w http.ResponseWriter, r *http.Request)
 	http.SetCookie(w, cookie)
 
 	helpers.ResponseJSON(w, http.StatusCreated, &SuccessResponse{
-		Message: "User registered successfully",
+		Message: "User successfully registered",
 		Data:    staff,
 	})
 }
