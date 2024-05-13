@@ -4,14 +4,14 @@ import (
 	"log"
 
 	"github.com/danzBraham/eniqilo-store/config"
-	"github.com/danzBraham/eniqilo-store/internal/db"
-	"github.com/danzBraham/eniqilo-store/internal/http/api"
+	"github.com/danzBraham/eniqilo-store/internal/infrastructures/db/postgres"
+	"github.com/danzBraham/eniqilo-store/internal/interfaces/http/api"
 )
 
 func main() {
 	env := config.LoadEnv()
 
-	dbpool, err := db.ConnectDB(env)
+	dbpool, err := postgres.ConnectDB(env)
 	if err != nil {
 		log.Panic(err)
 	}
