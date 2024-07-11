@@ -41,3 +41,14 @@ type LoginStaffResponse struct {
 	Name        string `json:"name"`
 	AccessToken string `json:"accessToken"`
 }
+
+type RegisterCustomerRequest struct {
+	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,e164"`
+	Name        string `json:"name" validate:"required,min=5,max=50"`
+}
+
+type RegisterCustomerResponse struct {
+	UserID      string `json:"userId"`
+	PhoneNumber string `json:"phoneNumber"`
+	Name        string `json:"name"`
+}

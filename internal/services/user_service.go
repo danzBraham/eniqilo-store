@@ -15,6 +15,7 @@ import (
 type UserService interface {
 	CreateStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error)
 	LoginStaff(ctx context.Context, payload *userentity.LoginStaffRequest) (*userentity.LoginStaffResponse, error)
+	RegisterCustomer(ctx context.Context, payload *userentity.RegisterCustomerRequest) (*userentity.RegisterCustomerResponse, error)
 }
 
 type UserServiceImpl struct {
@@ -86,5 +87,33 @@ func (s *UserServiceImpl) LoginStaff(ctx context.Context, payload *userentity.Lo
 		PhoneNumber: staff.PhoneNumber,
 		Name:        staff.Name,
 		AccessToken: token,
+	}, nil
+}
+
+func (s *UserServiceImpl) RegisterCustomer(ctx context.Context, payload *userentity.RegisterCustomerRequest) (*userentity.RegisterCustomerResponse, error) {
+	isPhoneNumberExists, err := s.UserRepository.IsPhoneNumberByItsRoleExists(ctx, payload.PhoneNumber, userentity.Customer)
+	if err != nil {
+		return nil, err
+	}
+	if isPhoneNumberExists {
+		return nil, usererror.ErrPhoneNumberAlreadyExists
+	}
+
+	customer := &userentity.User{
+		ID:          ulid.Make().String(),
+		PhoneNumber: payload.PhoneNumber,
+		Name:        payload.Name,
+		Role:        userentity.Customer,
+	}
+
+	err = s.UserRepository.CreateUser(ctx, customer)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userentity.RegisterCustomerResponse{
+		UserID:      customer.ID,
+		PhoneNumber: customer.PhoneNumber,
+		Name:        customer.Name,
 	}, nil
 }

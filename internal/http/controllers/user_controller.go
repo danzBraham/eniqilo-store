@@ -14,6 +14,7 @@ import (
 type UserController interface {
 	HandleRegisterStaff(w http.ResponseWriter, r *http.Request)
 	HandleLoginStaff(w http.ResponseWriter, r *http.Request)
+	HandleRegisterCustomer(w http.ResponseWriter, r *http.Request)
 }
 
 type UserControllerImpl struct {
@@ -73,4 +74,24 @@ func (c *UserControllerImpl) HandleLoginStaff(w http.ResponseWriter, r *http.Req
 	}
 
 	httphelper.SuccessResponse(w, http.StatusOK, "User successfully login", staffResponse)
+}
+
+func (c *UserControllerImpl) HandleRegisterCustomer(w http.ResponseWriter, r *http.Request) {
+	payload := &userentity.RegisterCustomerRequest{}
+	err := httphelper.DecodeAndValidate(w, r, payload)
+	if err != nil {
+		return
+	}
+
+	customerResponse, err := c.UserService.RegisterCustomer(r.Context(), payload)
+	if errors.Is(err, usererror.ErrPhoneNumberAlreadyExists) {
+		httphelper.ErrorResponse(w, http.StatusConflict, err)
+		return
+	}
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusCreated, "User registered successfully", customerResponse)
 }

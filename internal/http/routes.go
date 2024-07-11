@@ -38,6 +38,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 			r.Post("/register", userController.HandleRegisterStaff)
 			r.Post("/login", userController.HandleLoginStaff)
 		})
+
+		r.Route("/customer", func(r chi.Router) {
+			r.Post("/register", userController.HandleRegisterCustomer)
+		})
 	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
