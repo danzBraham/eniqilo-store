@@ -3,6 +3,8 @@ package httphelper
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/danzBraham/eniqilo-store/internal/helpers/validator"
 )
 
 type ResponseBody struct {
@@ -16,7 +18,7 @@ func DecodeJSON(r *http.Request, payload any) error {
 }
 
 func EncodeJSON(w http.ResponseWriter, status int, payload any) error {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(payload)
 }
@@ -33,4 +35,23 @@ func SuccessResponse(w http.ResponseWriter, status int, message string, data any
 		Message: message,
 		Data:    data,
 	})
+}
+
+func DecodeAndValidate(w http.ResponseWriter, r *http.Request, payload any) error {
+	err := DecodeJSON(r, payload)
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, err)
+		return err
+	}
+
+	err = validator.ValidatePayload(payload)
+	if err != nil {
+		EncodeJSON(w, http.StatusBadRequest, ResponseBody{
+			Error:   "Request doesn't pass validation",
+			Message: err.Error(),
+		})
+		return err
+	}
+
+	return nil
 }

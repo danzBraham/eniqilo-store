@@ -25,6 +25,6 @@ func (s *Server) Launch() error {
 		Handler: s.RegisterRoutes(),
 	}
 
-	log.Printf("Server listening on %s\n", s.Addr)
+	log.Printf("Server listening on %s\n", server.Addr)
 	return server.ListenAndServe()
 }

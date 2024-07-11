@@ -3,13 +3,20 @@ package main
 import (
 	"log"
 
+	"github.com/danzBraham/eniqilo-store/internal/database"
 	"github.com/danzBraham/eniqilo-store/internal/http"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
 	addr := ":8080"
+	pool, err := database.Connect()
+	if err != nil {
+		log.Fatalf("failed to connect to the database: %v", err)
+	}
+	defer pool.Close()
 
-	server := http.NewServer(addr, nil)
+	server := http.NewServer(addr, pool)
 	if err := server.Launch(); err != nil {
 		log.Fatal(err)
 	}
