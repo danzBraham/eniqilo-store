@@ -21,12 +21,6 @@ bin/
 # Go workspace file
 go.work
 go.work.sum
-go.sum
 
 .env
 *.png
-
-*.pem
-w1key
-
-main
