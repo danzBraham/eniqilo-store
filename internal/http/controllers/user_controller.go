@@ -32,7 +32,7 @@ func (c *UserControllerImpl) HandleRegisterStaff(w http.ResponseWriter, r *http.
 		return
 	}
 
-	staffResponse, err := c.UserService.CreateStaff(r.Context(), payload)
+	staffResponse, err := c.UserService.RegisterStaff(r.Context(), payload)
 	if errors.Is(err, usererror.ErrPhoneNumberAlreadyExists) {
 		httphelper.ErrorResponse(w, http.StatusConflict, err)
 		return

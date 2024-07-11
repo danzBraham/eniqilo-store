@@ -13,7 +13,7 @@ import (
 )
 
 type UserService interface {
-	CreateStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error)
+	RegisterStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error)
 	LoginStaff(ctx context.Context, payload *userentity.LoginStaffRequest) (*userentity.LoginStaffResponse, error)
 	RegisterCustomer(ctx context.Context, payload *userentity.RegisterCustomerRequest) (*userentity.RegisterCustomerResponse, error)
 }
@@ -26,7 +26,7 @@ func NewUserService(userRepository repositories.UserRepository) UserService {
 	return &UserServiceImpl{UserRepository: userRepository}
 }
 
-func (s *UserServiceImpl) CreateStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error) {
+func (s *UserServiceImpl) RegisterStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error) {
 	isPhoneNumberExists, err := s.UserRepository.IsPhoneNumberByItsRoleExists(ctx, payload.PhoneNumber, userentity.Staff)
 	if err != nil {
 		return nil, err
