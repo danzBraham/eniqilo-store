@@ -14,6 +14,7 @@ import (
 
 type UserService interface {
 	CreateStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error)
+	LoginStaff(ctx context.Context, payload *userentity.LoginStaffRequest) (*userentity.LoginStaffResponse, error)
 }
 
 type UserServiceImpl struct {
@@ -39,7 +40,7 @@ func (s *UserServiceImpl) CreateStaff(ctx context.Context, payload *userentity.R
 	}
 
 	staff := &userentity.User{
-		Id:          ulid.Make().String(),
+		ID:          ulid.Make().String(),
 		PhoneNumber: payload.PhoneNumber,
 		Name:        payload.Name,
 		Password:    hashedPassword,
@@ -51,13 +52,37 @@ func (s *UserServiceImpl) CreateStaff(ctx context.Context, payload *userentity.R
 		return nil, err
 	}
 
-	token, err := jwt.GenerateToken(2*time.Hour, staff.Id)
+	token, err := jwt.GenerateToken(2*time.Hour, staff.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &userentity.RegisterStaffResponse{
-		UserId:      staff.Id,
+		UserID:      staff.ID,
+		PhoneNumber: staff.PhoneNumber,
+		Name:        staff.Name,
+		AccessToken: token,
+	}, nil
+}
+
+func (s *UserServiceImpl) LoginStaff(ctx context.Context, payload *userentity.LoginStaffRequest) (*userentity.LoginStaffResponse, error) {
+	staff, err := s.UserRepository.GetUserByPhoneNumberAndRole(ctx, payload.PhoneNumber, userentity.Staff)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.VerifyPassword(staff.Password, payload.Password)
+	if err != nil {
+		return nil, usererror.ErrInvalidPassword
+	}
+
+	token, err := jwt.GenerateToken(2*time.Hour, staff.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userentity.LoginStaffResponse{
+		UserID:      staff.ID,
 		PhoneNumber: staff.PhoneNumber,
 		Name:        staff.Name,
 		AccessToken: token,

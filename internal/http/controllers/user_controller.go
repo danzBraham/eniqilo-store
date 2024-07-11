@@ -13,6 +13,7 @@ import (
 
 type UserController interface {
 	HandleRegisterStaff(w http.ResponseWriter, r *http.Request)
+	HandleLoginStaff(w http.ResponseWriter, r *http.Request)
 }
 
 type UserControllerImpl struct {
@@ -48,4 +49,28 @@ func (c *UserControllerImpl) HandleRegisterStaff(w http.ResponseWriter, r *http.
 	http.SetCookie(w, cookie)
 
 	httphelper.SuccessResponse(w, http.StatusCreated, "User successfully registered", staffResponse)
+}
+
+func (c *UserControllerImpl) HandleLoginStaff(w http.ResponseWriter, r *http.Request) {
+	payload := &userentity.LoginStaffRequest{}
+	err := httphelper.DecodeAndValidate(w, r, payload)
+	if err != nil {
+		return
+	}
+
+	staffResponse, err := c.UserService.LoginStaff(r.Context(), payload)
+	if errors.Is(err, usererror.ErrUserNotFound) {
+		httphelper.ErrorResponse(w, http.StatusNotFound, err)
+		return
+	}
+	if errors.Is(err, usererror.ErrInvalidPassword) {
+		httphelper.ErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusOK, "User successfully login", staffResponse)
 }

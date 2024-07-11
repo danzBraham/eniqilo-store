@@ -3,8 +3,10 @@ package repositories
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/danzBraham/eniqilo-store/internal/entities/userentity"
+	"github.com/danzBraham/eniqilo-store/internal/errors/usererror"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -12,6 +14,7 @@ import (
 type UserRepository interface {
 	IsPhoneNumberByItsRoleExists(ctx context.Context, phoneNumber string, role userentity.Role) (bool, error)
 	CreateUser(ctx context.Context, user *userentity.User) error
+	GetUserByPhoneNumberAndRole(ctx context.Context, phoneNumber string, role userentity.Role) (*userentity.User, error)
 }
 
 type UserRepositoryImpl struct {
@@ -52,7 +55,7 @@ func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *userentity.Us
 			($1, $2, $3, $4, $5)
 	`
 	_, err := r.DB.Exec(ctx, query,
-		&user.Id,
+		&user.ID,
 		&user.PhoneNumber,
 		&user.Name,
 		&user.Password,
@@ -62,4 +65,40 @@ func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *userentity.Us
 		return err
 	}
 	return nil
+}
+
+func (r *UserRepositoryImpl) GetUserByPhoneNumberAndRole(ctx context.Context, phoneNumber string, role userentity.Role) (*userentity.User, error) {
+	query := `
+		SELECT
+			id,
+			phone_number,
+			name,
+			password,
+			role,
+			created_at
+		FROM
+			users
+		WHERE
+			phone_number = $1
+			AND role = $2
+			AND is_deleted = false
+	`
+	var user userentity.User
+	var createdAt time.Time
+	err := r.DB.QueryRow(ctx, query, phoneNumber, role).Scan(
+		&user.ID,
+		&user.PhoneNumber,
+		&user.Name,
+		&user.Password,
+		&user.Role,
+		&createdAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, usererror.ErrUserNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	user.CreatedAt = createdAt.Format(time.RFC3339)
+	return &user, nil
 }

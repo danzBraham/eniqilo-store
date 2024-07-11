@@ -8,7 +8,7 @@ const (
 )
 
 type User struct {
-	Id          string
+	ID          string
 	PhoneNumber string
 	Name        string
 	Password    string
@@ -24,7 +24,19 @@ type RegisterStaffRequest struct {
 }
 
 type RegisterStaffResponse struct {
-	UserId      string `json:"userId"`
+	UserID      string `json:"userId"`
+	PhoneNumber string `json:"phoneNumber"`
+	Name        string `json:"name"`
+	AccessToken string `json:"accessToken"`
+}
+
+type LoginStaffRequest struct {
+	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,e164"`
+	Password    string `json:"password" validate:"required,min=5,max=15"`
+}
+
+type LoginStaffResponse struct {
+	UserID      string `json:"userId"`
 	PhoneNumber string `json:"phoneNumber"`
 	Name        string `json:"name"`
 	AccessToken string `json:"accessToken"`
