@@ -2,16 +2,20 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
 	"github.com/danzBraham/eniqilo-store/internal/entities/productentity"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ProductRepository interface {
+	IsProductIDExists(ctx context.Context, productID string) (bool, error)
 	CreateProduct(ctx context.Context, product *productentity.Product) (string, error)
 	GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error)
+	UpdateProductByID(ctx context.Context, productID string, product *productentity.Product) error
 }
 
 type ProductRepositoryImpl struct {
@@ -20,6 +24,27 @@ type ProductRepositoryImpl struct {
 
 func NewProductRepository(db *pgxpool.Pool) ProductRepository {
 	return &ProductRepositoryImpl{DB: db}
+}
+
+func (r *ProductRepositoryImpl) IsProductIDExists(ctx context.Context, productID string) (bool, error) {
+	query := `
+		SELECT
+			1
+		FROM
+			products
+		WHERE
+			id = $1
+			AND is_deleted = false
+	`
+	var exists int
+	err := r.DB.QueryRow(ctx, query, productID).Scan(&exists)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *ProductRepositoryImpl) CreateProduct(ctx context.Context, product *productentity.Product) (string, error) {
@@ -165,4 +190,41 @@ func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, params *product
 	}
 
 	return products, nil
+}
+
+func (r *ProductRepositoryImpl) UpdateProductByID(ctx context.Context, productID string, product *productentity.Product) error {
+	query := `
+		UPDATE
+			products
+		SET
+			name = $1,
+			sku = $2,
+			category = $3,
+			image_url = $4,
+			notes = $5,
+			price = $6,
+			stock = $7,
+			location = $8,
+			is_available = $9,
+			updated_at = NOW()
+		WHERE
+			id = $10
+			AND is_deleted = false
+	`
+	_, err := r.DB.Exec(ctx, query,
+		&product.Name,
+		&product.SKU,
+		&product.Category,
+		&product.ImageURL,
+		&product.Notes,
+		&product.Price,
+		&product.Stock,
+		&product.Location,
+		&product.IsAvailable,
+		productID,
+	)
+	if err != nil {
+		return err
+	}
+	return err
 }

@@ -1,17 +1,21 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/danzBraham/eniqilo-store/internal/entities/productentity"
+	"github.com/danzBraham/eniqilo-store/internal/errors/producterror"
 	"github.com/danzBraham/eniqilo-store/internal/helpers/httphelper"
 	"github.com/danzBraham/eniqilo-store/internal/services"
+	"github.com/go-chi/chi/v5"
 )
 
 type ProductController interface {
 	HandleCreateProduct(w http.ResponseWriter, r *http.Request)
 	HandleGetProducts(w http.ResponseWriter, r *http.Request)
+	HandleUpdateProductByID(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductControllerImpl struct {
@@ -68,4 +72,25 @@ func (c *ProductControllerImpl) HandleGetProducts(w http.ResponseWriter, r *http
 	}
 
 	httphelper.SuccessResponse(w, http.StatusOK, "success", productResponses)
+}
+
+func (c *ProductControllerImpl) HandleUpdateProductByID(w http.ResponseWriter, r *http.Request) {
+	payload := &productentity.UpdateProductRequest{}
+	err := httphelper.DecodeAndValidate(w, r, payload)
+	if err != nil {
+		return
+	}
+
+	productID := chi.URLParam(r, "id")
+	err = c.ProductService.UpdateProductByID(r.Context(), productID, payload)
+	if errors.Is(err, producterror.ErrProductIDNotFound) {
+		httphelper.ErrorResponse(w, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusOK, "successfully edit product", nil)
 }
