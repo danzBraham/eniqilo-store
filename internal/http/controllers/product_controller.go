@@ -16,6 +16,7 @@ type ProductController interface {
 	HandleCreateProduct(w http.ResponseWriter, r *http.Request)
 	HandleGetProducts(w http.ResponseWriter, r *http.Request)
 	HandleUpdateProductByID(w http.ResponseWriter, r *http.Request)
+	HandleDeleteProductByID(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductControllerImpl struct {
@@ -93,4 +94,19 @@ func (c *ProductControllerImpl) HandleUpdateProductByID(w http.ResponseWriter, r
 	}
 
 	httphelper.SuccessResponse(w, http.StatusOK, "successfully edit product", nil)
+}
+
+func (c *ProductControllerImpl) HandleDeleteProductByID(w http.ResponseWriter, r *http.Request) {
+	productID := chi.URLParam(r, "id")
+	err := c.ProductService.DeleteProductByID(r.Context(), productID)
+	if errors.Is(err, producterror.ErrProductIDNotFound) {
+		httphelper.ErrorResponse(w, http.StatusNotFound, err)
+		return
+	}
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusOK, "successfully delete product", nil)
 }

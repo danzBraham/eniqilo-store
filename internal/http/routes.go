@@ -50,6 +50,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 				r.Post("/", productController.HandleCreateProduct)
 				r.Get("/", productController.HandleGetProducts)
 				r.Put("/{id}", productController.HandleUpdateProductByID)
+				r.Delete("/{id}", productController.HandleDeleteProductByID)
 			})
 
 			r.Route("/customer", func(r chi.Router) {

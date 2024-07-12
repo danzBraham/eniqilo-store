@@ -13,6 +13,7 @@ type ProductService interface {
 	CreateProduct(ctx context.Context, payload *productentity.CreateProductRequest) (*productentity.CreateProductResponse, error)
 	GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error)
 	UpdateProductByID(ctx context.Context, productID string, payload *productentity.UpdateProductRequest) error
+	DeleteProductByID(ctx context.Context, productID string) error
 }
 
 type ProductServiceImpl struct {
@@ -74,6 +75,23 @@ func (s *ProductServiceImpl) UpdateProductByID(ctx context.Context, productID st
 	}
 
 	err = s.ProductRepository.UpdateProductByID(ctx, productID, product)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ProductServiceImpl) DeleteProductByID(ctx context.Context, productID string) error {
+	IsProductIDExists, err := s.ProductRepository.IsProductIDExists(ctx, productID)
+	if err != nil {
+		return err
+	}
+	if !IsProductIDExists {
+		return producterror.ErrProductIDNotFound
+	}
+
+	err = s.ProductRepository.DeleteProductByID(ctx, productID)
 	if err != nil {
 		return err
 	}

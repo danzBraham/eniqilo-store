@@ -16,6 +16,7 @@ type ProductRepository interface {
 	CreateProduct(ctx context.Context, product *productentity.Product) (string, error)
 	GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error)
 	UpdateProductByID(ctx context.Context, productID string, product *productentity.Product) error
+	DeleteProductByID(ctx context.Context, productID string) error
 }
 
 type ProductRepositoryImpl struct {
@@ -223,6 +224,23 @@ func (r *ProductRepositoryImpl) UpdateProductByID(ctx context.Context, productID
 		&product.IsAvailable,
 		productID,
 	)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (r *ProductRepositoryImpl) DeleteProductByID(ctx context.Context, productID string) error {
+	query := `
+		UPDATE
+			products
+		SET
+			is_deleted = true
+		WHERE
+			id = $1
+			AND is_deleted = false
+	`
+	_, err := r.DB.Exec(ctx, query, productID)
 	if err != nil {
 		return err
 	}
