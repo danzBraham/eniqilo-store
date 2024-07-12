@@ -6,6 +6,7 @@ import (
 	"github.com/danzBraham/eniqilo-store/internal/errors/commonerror"
 	"github.com/danzBraham/eniqilo-store/internal/helpers/httphelper"
 	"github.com/danzBraham/eniqilo-store/internal/http/controllers"
+	"github.com/danzBraham/eniqilo-store/internal/http/middlewares"
 	"github.com/danzBraham/eniqilo-store/internal/repositories"
 	"github.com/danzBraham/eniqilo-store/internal/services"
 	"github.com/go-chi/chi/v5"
@@ -39,8 +40,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 			r.Post("/login", userController.HandleLoginStaff)
 		})
 
-		r.Route("/customer", func(r chi.Router) {
-			r.Post("/register", userController.HandleRegisterCustomer)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.Auth)
+
+			r.Route("/customer", func(r chi.Router) {
+				r.Post("/register", userController.HandleRegisterCustomer)
+			})
 		})
 	})
 
