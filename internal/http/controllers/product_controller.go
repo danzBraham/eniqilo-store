@@ -15,6 +15,7 @@ import (
 type ProductController interface {
 	HandleCreateProduct(w http.ResponseWriter, r *http.Request)
 	HandleGetProducts(w http.ResponseWriter, r *http.Request)
+	HandleGetProductsForCustomer(w http.ResponseWriter, r *http.Request)
 	HandleUpdateProductByID(w http.ResponseWriter, r *http.Request)
 	HandleDeleteProductByID(w http.ResponseWriter, r *http.Request)
 }
@@ -73,6 +74,35 @@ func (c *ProductControllerImpl) HandleGetProducts(w http.ResponseWriter, r *http
 	}
 
 	httphelper.SuccessResponse(w, http.StatusOK, "success", productResponses)
+}
+
+func (c *ProductControllerImpl) HandleGetProductsForCustomer(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	params := &productentity.ProductQueryParams{
+		Limit:    5,
+		Offset:   0,
+		Name:     query.Get("name"),
+		SKU:      query.Get("sku"),
+		Category: productentity.Category(query.Get("category")),
+		Price:    query.Get("price"),
+		InStock:  query.Get("inStock"),
+	}
+
+	if limit := query.Get("limit"); limit != "" {
+		params.Limit, _ = strconv.Atoi(limit)
+	}
+
+	if offset := query.Get("offset"); offset != "" {
+		params.Offset, _ = strconv.Atoi(offset)
+	}
+
+	productForCustomerResponses, err := c.ProductService.GetProductsForCustomer(r.Context(), params)
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusOK, "successfully get products", productForCustomerResponses)
 }
 
 func (c *ProductControllerImpl) HandleUpdateProductByID(w http.ResponseWriter, r *http.Request) {

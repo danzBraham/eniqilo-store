@@ -43,6 +43,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 			r.Post("/login", userController.HandleLoginStaff)
 		})
 
+		r.Get("/product/customer", productController.HandleGetProductsForCustomer)
+
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.Auth)
 

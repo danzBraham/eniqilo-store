@@ -12,6 +12,7 @@ import (
 type ProductService interface {
 	CreateProduct(ctx context.Context, payload *productentity.CreateProductRequest) (*productentity.CreateProductResponse, error)
 	GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error)
+	GetProductsForCustomer(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error)
 	UpdateProductByID(ctx context.Context, productID string, payload *productentity.UpdateProductRequest) error
 	DeleteProductByID(ctx context.Context, productID string) error
 }
@@ -51,6 +52,10 @@ func (s *ProductServiceImpl) CreateProduct(ctx context.Context, payload *product
 
 func (s *ProductServiceImpl) GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error) {
 	return s.ProductRepository.GetProducts(ctx, params)
+}
+
+func (s *ProductServiceImpl) GetProductsForCustomer(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error) {
+	return s.ProductRepository.GetProductsForCustomer(ctx, params)
 }
 
 func (s *ProductServiceImpl) UpdateProductByID(ctx context.Context, productID string, payload *productentity.UpdateProductRequest) error {
