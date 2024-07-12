@@ -27,12 +27,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	// repositories
 	userRepository := repositories.NewUserRepository(s.DB)
+	productRepository := repositories.NewProductRepository(s.DB)
 
 	// services
 	userService := services.NewUserService(userRepository)
+	productService := services.NewProductService(productRepository)
 
 	// controllers
 	userController := controllers.NewUserController(userService)
+	productController := controllers.NewProductController(productService)
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/staff", func(r chi.Router) {
@@ -42,6 +45,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.Auth)
+
+			r.Route("/product", func(r chi.Router) {
+				r.Post("/", productController.HandleCreateProduct)
+			})
 
 			r.Route("/customer", func(r chi.Router) {
 				r.Post("/register", userController.HandleRegisterCustomer)

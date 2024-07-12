@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS products;
+DROP TYPE IF EXISTS product_category;
+
+COMMIT;
