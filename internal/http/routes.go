@@ -57,6 +57,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 			r.Route("/customer", func(r chi.Router) {
 				r.Post("/register", userController.HandleRegisterCustomer)
+				r.Get("/", userController.HandleGetCustomers)
 			})
 		})
 	})

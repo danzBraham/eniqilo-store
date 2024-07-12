@@ -15,6 +15,7 @@ type UserController interface {
 	HandleRegisterStaff(w http.ResponseWriter, r *http.Request)
 	HandleLoginStaff(w http.ResponseWriter, r *http.Request)
 	HandleRegisterCustomer(w http.ResponseWriter, r *http.Request)
+	HandleGetCustomers(w http.ResponseWriter, r *http.Request)
 }
 
 type UserControllerImpl struct {
@@ -94,4 +95,20 @@ func (c *UserControllerImpl) HandleRegisterCustomer(w http.ResponseWriter, r *ht
 	}
 
 	httphelper.SuccessResponse(w, http.StatusCreated, "User registered successfully", customerResponse)
+}
+
+func (c *UserControllerImpl) HandleGetCustomers(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	params := &userentity.CustomerQueryParams{
+		PhoneNumber: query.Get("phoneNumber"),
+		Name:        query.Get("name"),
+	}
+
+	customerResponses, err := c.UserService.GetCustomers(r.Context(), params)
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusOK, "success", customerResponses)
 }

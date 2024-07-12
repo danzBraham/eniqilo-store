@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/danzBraham/eniqilo-store/internal/entities/userentity"
@@ -15,6 +16,7 @@ type UserRepository interface {
 	IsPhoneNumberByItsRoleExists(ctx context.Context, phoneNumber string, role userentity.Role) (bool, error)
 	CreateUser(ctx context.Context, user *userentity.User) error
 	GetUserByPhoneNumberAndRole(ctx context.Context, phoneNumber string, role userentity.Role) (*userentity.User, error)
+	GetCustomers(ctx context.Context, params *userentity.CustomerQueryParams) ([]*userentity.GetCustomerResponse, error)
 }
 
 type UserRepositoryImpl struct {
@@ -101,4 +103,52 @@ func (r *UserRepositoryImpl) GetUserByPhoneNumberAndRole(ctx context.Context, ph
 	}
 	user.CreatedAt = createdAt.Format(time.RFC3339)
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) GetCustomers(ctx context.Context, params *userentity.CustomerQueryParams) ([]*userentity.GetCustomerResponse, error) {
+	query := `
+		SELECT
+			id,
+			phone_number,
+			name
+		FROM
+			users
+		WHERE
+			role = 'Customer'
+			AND is_deleted = false
+	`
+	args := []interface{}{}
+	argID := 1
+
+	if params.PhoneNumber != "" {
+		query += ` AND phone_number LIKE $` + strconv.Itoa(argID)
+		args = append(args, `+`+params.PhoneNumber+`%`)
+		argID++
+	}
+
+	if params.Name != "" {
+		query += ` AND name ILIKE $` + strconv.Itoa(argID)
+		args = append(args, `%`+params.Name+`%`)
+		argID++
+	}
+
+	query += ` ORDER BY created_at DESC`
+	rows, err := r.DB.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	customers := make([]*userentity.GetCustomerResponse, 0)
+	for rows.Next() {
+		var customer userentity.GetCustomerResponse
+		rows.Scan(
+			&customer.UserID,
+			&customer.PhoneNumber,
+			&customer.Name,
+		)
+		customers = append(customers, &customer)
+	}
+
+	return customers, nil
 }

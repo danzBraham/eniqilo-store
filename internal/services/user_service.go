@@ -16,6 +16,7 @@ type UserService interface {
 	RegisterStaff(ctx context.Context, payload *userentity.RegisterStaffRequest) (*userentity.RegisterStaffResponse, error)
 	LoginStaff(ctx context.Context, payload *userentity.LoginStaffRequest) (*userentity.LoginStaffResponse, error)
 	RegisterCustomer(ctx context.Context, payload *userentity.RegisterCustomerRequest) (*userentity.RegisterCustomerResponse, error)
+	GetCustomers(ctx context.Context, params *userentity.CustomerQueryParams) ([]*userentity.GetCustomerResponse, error)
 }
 
 type UserServiceImpl struct {
@@ -116,4 +117,8 @@ func (s *UserServiceImpl) RegisterCustomer(ctx context.Context, payload *userent
 		PhoneNumber: customer.PhoneNumber,
 		Name:        customer.Name,
 	}, nil
+}
+
+func (s *UserServiceImpl) GetCustomers(ctx context.Context, params *userentity.CustomerQueryParams) ([]*userentity.GetCustomerResponse, error) {
+	return s.UserRepository.GetCustomers(ctx, params)
 }
