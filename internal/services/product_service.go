@@ -10,6 +10,7 @@ import (
 
 type ProductService interface {
 	CreateProduct(ctx context.Context, payload *productentity.CreateProductRequest) (*productentity.CreateProductResponse, error)
+	GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error)
 }
 
 type ProductServiceImpl struct {
@@ -43,4 +44,8 @@ func (s *ProductServiceImpl) CreateProduct(ctx context.Context, payload *product
 		ID:        product.ID,
 		CreatedAt: createdAt,
 	}, nil
+}
+
+func (s *ProductServiceImpl) GetProducts(ctx context.Context, params *productentity.ProductQueryParams) ([]*productentity.GetProductResponse, error) {
+	return s.ProductRepository.GetProducts(ctx, params)
 }

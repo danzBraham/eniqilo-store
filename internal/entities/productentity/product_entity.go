@@ -40,3 +40,30 @@ type CreateProductResponse struct {
 	ID        string `json:"id"`
 	CreatedAt string `json:"createdAt"`
 }
+
+type ProductQueryParams struct {
+	ID          string
+	Limit       int
+	Offset      int
+	Name        string
+	SKU         string
+	Category    Category
+	Price       string
+	InStock     string
+	IsAvailable string
+	CreatedAt   string
+}
+
+type GetProductResponse struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	SKU         string   `json:"sku"`
+	Category    Category `json:"category"`
+	ImageURL    string   `json:"imageUrl"`
+	Notes       string   `json:"notes"`
+	Price       int      `json:"price"`
+	Stock       int      `json:"stock"`
+	Location    string   `json:"location"`
+	IsAvailable bool     `json:"isAvailable"`
+	CreatedAt   string   `json:"createdAt"`
+}
