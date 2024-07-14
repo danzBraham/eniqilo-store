@@ -81,7 +81,7 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 			INSERT INTO
 				checkouts (id, transaction_id, product_id, quantity, total_price)
 			VALUES
-				($1, $2, $3, $4 $5)
+				($1, $2, $3, $4, $5)
 		`
 		_, err = tx.Exec(ctx, queryInsertCheckout,
 			ulid.Make().String(),
@@ -109,8 +109,8 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 		UPDATE
 			transactions
 		SET
-			total_price = $1
-			paid = $2
+			total_price = $1,
+			paid = $2,
 			change = $3
 		WHERE
 			id = $4
