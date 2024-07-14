@@ -1,0 +1,13 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS checkouts (
+  id VARCHAR(26) PRIMARY KEY NOT NULL,
+  transaction_id VARCHAR(26) NOT NULL,
+  product_id VARCHAR(26) NOT NULL,
+  quantity INT NOT NULL,
+  total_price INT NOT NULL,
+  FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+COMMIT;

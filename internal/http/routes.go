@@ -28,14 +28,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// repositories
 	userRepository := repositories.NewUserRepository(s.DB)
 	productRepository := repositories.NewProductRepository(s.DB)
+	checkoutRepository := repositories.NewCheckoutRepository(s.DB)
 
 	// services
 	userService := services.NewUserService(userRepository)
 	productService := services.NewProductService(productRepository)
+	checkoutService := services.NewCheckoutService(checkoutRepository, userRepository)
 
 	// controllers
 	userController := controllers.NewUserController(userService)
 	productController := controllers.NewProductController(productService)
+	checkoutController := controllers.NewCheckoutController(checkoutService)
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/staff", func(r chi.Router) {
@@ -53,6 +56,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 				r.Get("/", productController.HandleGetProducts)
 				r.Put("/{id}", productController.HandleUpdateProductByID)
 				r.Delete("/{id}", productController.HandleDeleteProductByID)
+				r.Post("/checkout", checkoutController.HandleCheckoutProduct)
 			})
 
 			r.Route("/customer", func(r chi.Router) {

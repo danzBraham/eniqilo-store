@@ -13,6 +13,7 @@ import (
 )
 
 type UserRepository interface {
+	IsUserIDByItsRoleExists(ctx context.Context, userID string, role userentity.Role) (bool, error)
 	IsPhoneNumberByItsRoleExists(ctx context.Context, phoneNumber string, role userentity.Role) (bool, error)
 	CreateUser(ctx context.Context, user *userentity.User) error
 	GetUserByPhoneNumberAndRole(ctx context.Context, phoneNumber string, role userentity.Role) (*userentity.User, error)
@@ -25,6 +26,28 @@ type UserRepositoryImpl struct {
 
 func NewUserRepository(db *pgxpool.Pool) UserRepository {
 	return &UserRepositoryImpl{DB: db}
+}
+
+func (r *UserRepositoryImpl) IsUserIDByItsRoleExists(ctx context.Context, userID string, role userentity.Role) (bool, error) {
+	query := `
+		SELECT
+			1
+		FROM
+			users
+		WHERE
+			id = $1
+			AND role = $2
+			AND is_deleted = false
+	`
+	var exists int
+	err := r.DB.QueryRow(ctx, query, userID, role).Scan(&exists)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *UserRepositoryImpl) IsPhoneNumberByItsRoleExists(ctx context.Context, phoneNumber string, role userentity.Role) (bool, error) {
