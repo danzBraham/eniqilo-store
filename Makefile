@@ -39,12 +39,12 @@ clean: migrate-drop
 
 .PHONY: docker-up
 docker-up:
-	@docker compose pull && docker compose up --build
+	@docker compose pull && docker compose up --build -d
 
 .PHONY: docker-down
 docker-down:
-	@docker compose down
+	@docker compose stop && docker compose down
 
 .PHONY: docker-down-volumes
 docker-down-volumes:
-	@docker compose down --volumes
+	@docker compose stop && docker compose down --volumes
