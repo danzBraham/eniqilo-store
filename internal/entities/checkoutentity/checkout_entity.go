@@ -29,3 +29,19 @@ type CheckoutProductRequest struct {
 	Paid           int              `json:"paid" validate:"required,min=1"`
 	Change         int              `json:"change" validate:"number,min=0"`
 }
+
+type CheckoutHistoryQueryParams struct {
+	CustomerID string
+	Limit      int
+	Offset     int
+	CreatedAt  string
+}
+
+type GetCheckoutHistoryResponse struct {
+	TransactionID  string            `json:"transactionId"`
+	CustomerID     string            `json:"customerId"`
+	ProductDetails []*ProductDetails `json:"productDetails"`
+	Paid           int               `json:"paid"`
+	Change         int               `json:"change"`
+	CreatedAt      string            `json:"createdAt"`
+}

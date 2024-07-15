@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/danzBraham/eniqilo-store/internal/entities/checkoutentity"
 	"github.com/danzBraham/eniqilo-store/internal/errors/checkouterror"
@@ -11,6 +13,7 @@ import (
 
 type CheckoutRepository interface {
 	CreateCheckoutProduct(ctx context.Context, transaction *checkoutentity.Transaction, checkoutProduct *checkoutentity.CheckoutProductRequest) error
+	GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error)
 }
 
 type CheckoutRepositoryImpl struct {
@@ -130,4 +133,86 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 	}
 
 	return nil
+}
+
+func (r *CheckoutRepositoryImpl) GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error) {
+	query := `
+		SELECT
+			t.id, t.customer_id, t.paid, t.change, t.created_at,
+			c.product_id, c.quantity
+		FROM
+			transactions t
+		INNER JOIN
+			checkouts c ON c.transaction_id = t.id
+		WHERE
+			is_deleted = false
+	`
+	args := []interface{}{}
+	argID := 1
+
+	if params.CustomerID != "" {
+		query += ` AND customer_id = $` + strconv.Itoa(argID)
+		args = append(args, params.CustomerID)
+	}
+
+	switch params.CreatedAt {
+	case "asc":
+		query += ` ORDER BY created_at ASC`
+	case "desc":
+		query += ` ORDER BY created_at DESC`
+	}
+
+	query += ` LIMIT $` + strconv.Itoa(argID) + ` OFFSET $` + strconv.Itoa(argID+1)
+	args = append(args, params.Limit, params.Offset)
+
+	rows, err := r.DB.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	historyMaps := make(map[string]*checkoutentity.GetCheckoutHistoryResponse)
+	for rows.Next() {
+		var (
+			transactionID, customerID, productID string
+			paid, change, quantity               int
+			createdAt                            time.Time
+		)
+		err := rows.Scan(
+			&transactionID,
+			&customerID,
+			&paid,
+			&change,
+			&createdAt,
+			&productID,
+			&quantity,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, exists := historyMaps[transactionID]; !exists {
+			historyMaps[transactionID] = &checkoutentity.GetCheckoutHistoryResponse{
+				TransactionID:  transactionID,
+				CustomerID:     customerID,
+				ProductDetails: []*checkoutentity.ProductDetails{},
+				Paid:           paid,
+				Change:         change,
+				CreatedAt:      createdAt.Format(time.RFC3339),
+			}
+		}
+
+		history := historyMaps[transactionID]
+		history.ProductDetails = append(history.ProductDetails, &checkoutentity.ProductDetails{
+			ProductID: productID,
+			Quantity:  quantity,
+		})
+	}
+
+	histories := make([]*checkoutentity.GetCheckoutHistoryResponse, 0, len(historyMaps))
+	for _, history := range historyMaps {
+		histories = append(histories, history)
+	}
+
+	return histories, nil
 }

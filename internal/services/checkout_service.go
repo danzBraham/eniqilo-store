@@ -12,6 +12,7 @@ import (
 
 type CheckoutService interface {
 	CheckoutProduct(ctx context.Context, payload *checkoutentity.CheckoutProductRequest) error
+	GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error)
 }
 
 type CheckoutServiceImpl struct {
@@ -49,4 +50,8 @@ func (s *CheckoutServiceImpl) CheckoutProduct(ctx context.Context, payload *chec
 	}
 
 	return nil
+}
+
+func (s *CheckoutServiceImpl) GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error) {
+	return s.CheckoutRepository.GetCheckoutHistories(ctx, params)
 }

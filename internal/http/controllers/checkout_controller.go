@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/danzBraham/eniqilo-store/internal/entities/checkoutentity"
 	"github.com/danzBraham/eniqilo-store/internal/errors/checkouterror"
@@ -12,6 +13,7 @@ import (
 
 type CheckoutController interface {
 	HandleCheckoutProduct(w http.ResponseWriter, r *http.Request)
+	HandleGetCheckoutHistroies(w http.ResponseWriter, r *http.Request)
 }
 
 type CheckoutControllerImpl struct {
@@ -60,4 +62,34 @@ func (c *CheckoutControllerImpl) HandleCheckoutProduct(w http.ResponseWriter, r 
 	}
 
 	httphelper.SuccessResponse(w, http.StatusOK, "successfully checkout product", nil)
+}
+
+func (c *CheckoutControllerImpl) HandleGetCheckoutHistroies(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	params := &checkoutentity.CheckoutHistoryQueryParams{
+		CustomerID: query.Get("customerId"),
+		Limit:      5,
+		Offset:     0,
+		CreatedAt:  "desc",
+	}
+
+	if limit := query.Get("limit"); limit != "" {
+		params.Limit, _ = strconv.Atoi(limit)
+	}
+
+	if offset := query.Get("offset"); offset != "" {
+		params.Offset, _ = strconv.Atoi(offset)
+	}
+
+	if createdAt := query.Get("createdAt"); createdAt != "" {
+		params.CreatedAt = createdAt
+	}
+
+	checkoutHistoryResponses, err := c.CheckoutService.GetCheckoutHistories(r.Context(), params)
+	if err != nil {
+		httphelper.ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	httphelper.SuccessResponse(w, http.StatusOK, "success", checkoutHistoryResponses)
 }

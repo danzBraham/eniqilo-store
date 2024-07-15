@@ -56,7 +56,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 				r.Get("/", productController.HandleGetProducts)
 				r.Put("/{id}", productController.HandleUpdateProductByID)
 				r.Delete("/{id}", productController.HandleDeleteProductByID)
-				r.Post("/checkout", checkoutController.HandleCheckoutProduct)
+
+				r.Route("/checkout", func(r chi.Router) {
+					r.Post("/", checkoutController.HandleCheckoutProduct)
+					r.Get("/history", checkoutController.HandleGetCheckoutHistroies)
+				})
 			})
 
 			r.Route("/customer", func(r chi.Router) {
