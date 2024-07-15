@@ -19,15 +19,15 @@ type Checkout struct {
 }
 
 type ProductDetails struct {
-	ProductID string `json:"productId"`
+	ProductID string `json:"productId" validate:"required"`
 	Quantity  int    `json:"quantity" validate:"required,min=1"`
 }
 
 type CheckoutProductRequest struct {
-	CustomerID     string           `json:"customerId"`
+	CustomerID     string           `json:"customerId" validate:"required"`
 	ProductDetails []ProductDetails `json:"productDetails" validate:"required,min=1,dive"`
 	Paid           int              `json:"paid" validate:"required,min=1"`
-	Change         int              `json:"change" validate:"number,min=0"`
+	Change         *int             `json:"change" validate:"number,min=0"`
 }
 
 type CheckoutHistoryQueryParams struct {

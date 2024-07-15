@@ -144,18 +144,18 @@ func (r *ProductRepositoryImpl) GetProducts(ctx context.Context, params *product
 		query += ` AND is_available = false`
 	}
 
-	switch params.Price {
-	case "asc":
-		query += ` ORDER BY price ASC`
-	case "desc":
-		query += ` ORDER BY price DESC`
-	}
-
 	switch params.CreatedAt {
 	case "asc":
 		query += ` ORDER BY created_at ASC`
 	case "desc":
 		query += ` ORDER BY created_at DESC`
+	}
+
+	switch params.Price {
+	case "asc":
+		query += `, price ASC`
+	case "desc":
+		query += `, price DESC`
 	}
 
 	query += ` LIMIT $` + strconv.Itoa(argID) + ` OFFSET $` + strconv.Itoa(argID+1)

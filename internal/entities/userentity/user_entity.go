@@ -18,7 +18,7 @@ type User struct {
 }
 
 type RegisterStaffRequest struct {
-	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,e164"`
+	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,phone_number"`
 	Name        string `json:"name" validate:"required,min=5,max=50"`
 	Password    string `json:"password" validate:"required,min=5,max=15"`
 }
@@ -31,7 +31,7 @@ type RegisterStaffResponse struct {
 }
 
 type LoginStaffRequest struct {
-	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,e164"`
+	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,phone_number"`
 	Password    string `json:"password" validate:"required,min=5,max=15"`
 }
 
@@ -43,7 +43,7 @@ type LoginStaffResponse struct {
 }
 
 type RegisterCustomerRequest struct {
-	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,e164"`
+	PhoneNumber string `json:"phoneNumber" validate:"required,min=10,max=16,phone_number"`
 	Name        string `json:"name" validate:"required,min=5,max=50"`
 }
 

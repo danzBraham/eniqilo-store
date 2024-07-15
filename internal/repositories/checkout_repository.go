@@ -13,7 +13,8 @@ import (
 
 type CheckoutRepository interface {
 	CreateCheckoutProduct(ctx context.Context, transaction *checkoutentity.Transaction, checkoutProduct *checkoutentity.CheckoutProductRequest) error
-	GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error)
+	GetCheckoutProducts(ctx context.Context, transactionID string) ([]*checkoutentity.Checkout, error)
+	GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.Transaction, error)
 }
 
 type CheckoutRepositoryImpl struct {
@@ -104,7 +105,7 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 		return checkouterror.ErrPaidNotEnough
 	}
 
-	if checkoutProduct.Change != (checkoutProduct.Paid - totalPriceTransaction) {
+	if *checkoutProduct.Change != (checkoutProduct.Paid - totalPriceTransaction) {
 		return checkouterror.ErrChangeNotRight
 	}
 
@@ -135,15 +136,48 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 	return nil
 }
 
-func (r *CheckoutRepositoryImpl) GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error) {
+func (r *CheckoutRepositoryImpl) GetCheckoutProducts(ctx context.Context, transactionID string) ([]*checkoutentity.Checkout, error) {
 	query := `
 		SELECT
-			t.id, t.customer_id, t.paid, t.change, t.created_at,
-			c.product_id, c.quantity
+			product_id,
+			quantity
 		FROM
-			transactions t
-		INNER JOIN
-			checkouts c ON c.transaction_id = t.id
+			checkouts
+		WHERE
+			transaction_id = $1
+	`
+	rows, err := r.DB.Query(ctx, query, transactionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	checkoutProducts := make([]*checkoutentity.Checkout, 0)
+	for rows.Next() {
+		var checkoutProduct checkoutentity.Checkout
+		err := rows.Scan(
+			&checkoutProduct.ProductID,
+			&checkoutProduct.Quantity,
+		)
+		if err != nil {
+			return nil, err
+		}
+		checkoutProducts = append(checkoutProducts, &checkoutProduct)
+	}
+
+	return checkoutProducts, nil
+}
+
+func (r *CheckoutRepositoryImpl) GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.Transaction, error) {
+	query := `
+		SELECT
+			id,
+			customer_id,
+			paid,
+			change,
+			created_at
+		FROM
+			transactions
 		WHERE
 			is_deleted = false
 	`
@@ -171,48 +205,23 @@ func (r *CheckoutRepositoryImpl) GetCheckoutHistories(ctx context.Context, param
 	}
 	defer rows.Close()
 
-	historyMaps := make(map[string]*checkoutentity.GetCheckoutHistoryResponse)
+	checkoutHistories := make([]*checkoutentity.Transaction, 0, params.Limit)
 	for rows.Next() {
-		var (
-			transactionID, customerID, productID string
-			paid, change, quantity               int
-			createdAt                            time.Time
-		)
+		var checkoutHistory checkoutentity.Transaction
+		var createdAt time.Time
 		err := rows.Scan(
-			&transactionID,
-			&customerID,
-			&paid,
-			&change,
+			&checkoutHistory.ID,
+			&checkoutHistory.CustomerID,
+			&checkoutHistory.Paid,
+			&checkoutHistory.Change,
 			&createdAt,
-			&productID,
-			&quantity,
 		)
 		if err != nil {
 			return nil, err
 		}
-
-		if _, exists := historyMaps[transactionID]; !exists {
-			historyMaps[transactionID] = &checkoutentity.GetCheckoutHistoryResponse{
-				TransactionID:  transactionID,
-				CustomerID:     customerID,
-				ProductDetails: []*checkoutentity.ProductDetails{},
-				Paid:           paid,
-				Change:         change,
-				CreatedAt:      createdAt.Format(time.RFC3339),
-			}
-		}
-
-		history := historyMaps[transactionID]
-		history.ProductDetails = append(history.ProductDetails, &checkoutentity.ProductDetails{
-			ProductID: productID,
-			Quantity:  quantity,
-		})
+		checkoutHistory.CreatedAt = createdAt.Format(time.RFC3339)
+		checkoutHistories = append(checkoutHistories, &checkoutHistory)
 	}
 
-	histories := make([]*checkoutentity.GetCheckoutHistoryResponse, 0, len(historyMaps))
-	for _, history := range historyMaps {
-		histories = append(histories, history)
-	}
-
-	return histories, nil
+	return checkoutHistories, nil
 }

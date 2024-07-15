@@ -53,5 +53,35 @@ func (s *CheckoutServiceImpl) CheckoutProduct(ctx context.Context, payload *chec
 }
 
 func (s *CheckoutServiceImpl) GetCheckoutHistories(ctx context.Context, params *checkoutentity.CheckoutHistoryQueryParams) ([]*checkoutentity.GetCheckoutHistoryResponse, error) {
-	return s.CheckoutRepository.GetCheckoutHistories(ctx, params)
+	checkoutHistories, err := s.CheckoutRepository.GetCheckoutHistories(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	checkoutHistoryResponses := make([]*checkoutentity.GetCheckoutHistoryResponse, 0, params.Limit)
+	for _, checkoutHistory := range checkoutHistories {
+		checkoutProducts, err := s.CheckoutRepository.GetCheckoutProducts(ctx, checkoutHistory.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		productDetails := make([]*checkoutentity.ProductDetails, 0, len(checkoutProducts))
+		for _, checkoutProduct := range checkoutProducts {
+			productDetails = append(productDetails, &checkoutentity.ProductDetails{
+				ProductID: checkoutProduct.ProductID,
+				Quantity:  checkoutProduct.Quantity,
+			})
+		}
+
+		checkoutHistoryResponses = append(checkoutHistoryResponses, &checkoutentity.GetCheckoutHistoryResponse{
+			TransactionID:  checkoutHistory.ID,
+			CustomerID:     checkoutHistory.CustomerID,
+			ProductDetails: productDetails,
+			Paid:           checkoutHistory.Paid,
+			Change:         checkoutHistory.Change,
+			CreatedAt:      checkoutHistory.CreatedAt,
+		})
+	}
+
+	return checkoutHistoryResponses, nil
 }

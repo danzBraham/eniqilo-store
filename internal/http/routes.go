@@ -5,6 +5,7 @@ import (
 
 	"github.com/danzBraham/eniqilo-store/internal/errors/commonerror"
 	"github.com/danzBraham/eniqilo-store/internal/helpers/httphelper"
+	_ "github.com/danzBraham/eniqilo-store/internal/helpers/validator"
 	"github.com/danzBraham/eniqilo-store/internal/http/controllers"
 	"github.com/danzBraham/eniqilo-store/internal/http/middlewares"
 	"github.com/danzBraham/eniqilo-store/internal/repositories"

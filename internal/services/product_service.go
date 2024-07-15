@@ -36,7 +36,7 @@ func (s *ProductServiceImpl) CreateProduct(ctx context.Context, payload *product
 		Price:       payload.Price,
 		Stock:       payload.Stock,
 		Location:    payload.Location,
-		IsAvailable: payload.IsAvailable,
+		IsAvailable: *payload.IsAvailable,
 	}
 
 	createdAt, err := s.ProductRepository.CreateProduct(ctx, product)
@@ -76,7 +76,7 @@ func (s *ProductServiceImpl) UpdateProductByID(ctx context.Context, productID st
 		Price:       payload.Price,
 		Stock:       payload.Stock,
 		Location:    payload.Location,
-		IsAvailable: payload.IsAvailable,
+		IsAvailable: *payload.IsAvailable,
 	}
 
 	err = s.ProductRepository.UpdateProductByID(ctx, productID, product)

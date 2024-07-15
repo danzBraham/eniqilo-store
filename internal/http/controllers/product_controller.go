@@ -56,7 +56,7 @@ func (c *ProductControllerImpl) HandleGetProducts(w http.ResponseWriter, r *http
 		Price:       query.Get("price"),
 		InStock:     query.Get("inStock"),
 		IsAvailable: query.Get("isAvailable"),
-		CreatedAt:   query.Get("createdAt"),
+		CreatedAt:   "desc",
 	}
 
 	if limit := query.Get("limit"); limit != "" {
@@ -65,6 +65,10 @@ func (c *ProductControllerImpl) HandleGetProducts(w http.ResponseWriter, r *http
 
 	if offset := query.Get("offset"); offset != "" {
 		params.Offset, _ = strconv.Atoi(offset)
+	}
+
+	if createdAt := query.Get("createdAt"); createdAt != "" {
+		params.CreatedAt = createdAt
 	}
 
 	productResponses, err := c.ProductService.GetProducts(r.Context(), params)
