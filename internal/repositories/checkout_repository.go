@@ -83,16 +83,15 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 
 		queryInsertCheckout := `
 			INSERT INTO
-				checkouts (id, checkout_history_id, product_id, quantity, total_price)
+				checkouts (id, checkout_history_id, product_id, quantity)
 			VALUES
-				($1, $2, $3, $4, $5)
+				($1, $2, $3, $4)
 		`
 		_, err = tx.Exec(ctx, queryInsertCheckout,
 			ulid.Make().String(),
 			&transaction.ID,
 			pd.ProductID,
 			pd.Quantity,
-			totalPriceProduct,
 		)
 		if err != nil {
 			return err

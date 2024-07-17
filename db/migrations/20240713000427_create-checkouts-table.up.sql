@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS checkouts (
   checkout_history_id VARCHAR(26) NOT NULL,
   product_id VARCHAR(26) NOT NULL,
   quantity INT NOT NULL,
-  total_price INT NOT NULL,
   FOREIGN KEY (checkout_history_id) REFERENCES checkout_histories(id) ON DELETE NO ACTION ON UPDATE NO ACTION,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
@@ -13,6 +12,5 @@ CREATE TABLE IF NOT EXISTS checkouts (
 CREATE INDEX IF NOT EXISTS idx_checkouts_checkout_history_id ON checkouts(checkout_history_id);
 CREATE INDEX IF NOT EXISTS idx_checkouts_product_id ON checkouts(product_id);
 CREATE INDEX IF NOT EXISTS idx_checkouts_quantity ON checkouts(quantity);
-CREATE INDEX IF NOT EXISTS idx_checkouts_total_price ON checkouts(total_price);
 
 COMMIT;
