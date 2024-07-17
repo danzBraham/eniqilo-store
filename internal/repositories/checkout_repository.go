@@ -32,7 +32,7 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 	}
 	defer tx.Rollback(ctx)
 
-	queryInsertTransaction := `INSERT INTO transactions (id, customer_id) VALUES ($1, $2)`
+	queryInsertTransaction := `INSERT INTO checkout_histories (id, customer_id) VALUES ($1, $2)`
 	_, err = tx.Exec(ctx, queryInsertTransaction, &transaction.ID, &transaction.CustomerID)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 
 		queryInsertCheckout := `
 			INSERT INTO
-				checkouts (id, transaction_id, product_id, quantity, total_price)
+				checkouts (id, checkout_history_id, product_id, quantity, total_price)
 			VALUES
 				($1, $2, $3, $4, $5)
 		`
@@ -111,7 +111,7 @@ func (r CheckoutRepositoryImpl) CreateCheckoutProduct(ctx context.Context, trans
 
 	queryUpdateTransaction := `
 		UPDATE
-			transactions
+			checkout_histories
 		SET
 			total_price = $1,
 			paid = $2,
@@ -144,7 +144,7 @@ func (r *CheckoutRepositoryImpl) GetCheckoutProducts(ctx context.Context, transa
 		FROM
 			checkouts
 		WHERE
-			transaction_id = $1
+			checkout_history_id = $1
 	`
 	rows, err := r.DB.Query(ctx, query, transactionID)
 	if err != nil {
@@ -177,7 +177,7 @@ func (r *CheckoutRepositoryImpl) GetCheckoutHistories(ctx context.Context, param
 			change,
 			created_at
 		FROM
-			transactions
+			checkout_histories
 		WHERE
 			is_deleted = false
 	`
